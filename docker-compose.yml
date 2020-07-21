@@ -1,0 +1,14 @@
+version: "3.5"
+services:
+  code_pipeline_to_s3:
+    build:
+      context: ./dockerfiles/python/
+      dockerfile: Dockerfile
+    tty: true
+    stdin_open: true
+    image: code_pipeline_to_s3
+    working_dir: /app
+    volumes:
+      - .:/app
+      - ~/.aws:/root/.aws
+    container_name: code_pipeline_to_s3
