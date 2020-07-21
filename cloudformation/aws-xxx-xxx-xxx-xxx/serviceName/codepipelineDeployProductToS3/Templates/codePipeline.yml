@@ -6,9 +6,7 @@ Description: CodePipeline For building
 Parameters:
   CodePipelineArtifactStoreBucket:
     Type: String
-  CodePipelinDeployDevBucket:
-    Type: String
-  CodePipelinDeployStgBucket:
+  CodePipelinDeployPrdBucket:
     Type: String
   GitHubToken:
     Type: String
@@ -83,21 +81,7 @@ Resources:
               OutputArtifacts:
                 - Name: CodebuildOutput
               RunOrder: 1
-        - Name: Deploy-develop
-          Actions:
-            - Name: Deploy
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: 1
-                Provider: S3
-              Configuration:
-                BucketName: !Ref CodePipelinDeployDevBucket
-                Extract: true
-              RunOrder: 1
-              InputArtifacts:
-                - Name: CodebuildOutput
-        - Name: Deploy-Approval-Dev2stg
+        - Name: Deploy-Approval-Stg2prd
           Actions:
             - Name: Approval
               ActionTypeId:
@@ -117,7 +101,7 @@ Resources:
                 Version: 1
                 Provider: S3
               Configuration:
-                BucketName: !Ref CodePipelinDeployStgBucket
+                BucketName: !Ref CodePipelinDeployPrdBucket
                 Extract: true
               RunOrder: 2
               InputArtifacts:
