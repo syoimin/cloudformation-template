@@ -1,4 +1,4 @@
-# UiGrowth front 用 code pipeline
+# cloudformation テンプレート集
 
 ## deploy コマンド
 

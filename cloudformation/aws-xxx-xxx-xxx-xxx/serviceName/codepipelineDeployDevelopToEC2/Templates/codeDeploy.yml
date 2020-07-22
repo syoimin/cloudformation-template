@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: CodePipeline For deploy
+
+Parameters:
+  CodePipelineArtifactStoreBucket:
+    Type: String
+  Branch:
+    Type: String
+    Description: GitHub Branch
+  ServiceName:
+    Description: Name for the service
+    Type: String
+    AllowedPattern: "[-_ a-zA-Z0-9]*"
+    ConstraintDescription:
+      can contain only alphanumeric characters, spaces, dashes
+      and underscores.
+  Type:
+    Description: Name for the service type mail/app/bastion/cicd
+    Type: String
+  Env:
+    Description: Environment dev/stg/prd
+    Type: String
+  CodeBuildImage:
+    Type: String
+    Default: "aws/codebuild/nodejs:7.0.0"
+    Description: Image used for CodeBuild project.
+  CodeBuildServiceRole:
+    Type: String
+    Description: CodeBuild role name
+
+Resources:
+  CodeDeploy:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      DeploymentGroupName: Develop
+      ApplicationName: !Ref CodeDeployAplication
+      DeploymentConfigName: CodeDeployDefault.OneAtATime
+      Ec2TagFilters:
+        - Type: KEY_AND_VALUE
+          Key: "Name"
+          Value: !Ref CodeDeployInstanceKeyDev
+      ServiceRoleArn: !Ref CodeDeployRoleArn
