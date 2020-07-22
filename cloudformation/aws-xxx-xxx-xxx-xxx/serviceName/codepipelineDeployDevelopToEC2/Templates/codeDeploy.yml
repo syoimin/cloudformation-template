@@ -2,11 +2,6 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: CodePipeline For deploy
 
 Parameters:
-  CodePipelineArtifactStoreBucket:
-    Type: String
-  Branch:
-    Type: String
-    Description: GitHub Branch
   ServiceName:
     Description: Name for the service
     Type: String
@@ -20,23 +15,28 @@ Parameters:
   Env:
     Description: Environment dev/stg/prd
     Type: String
-  CodeBuildImage:
-    Type: String
-    Default: "aws/codebuild/nodejs:7.0.0"
-    Description: Image used for CodeBuild project.
-  CodeBuildServiceRole:
+  CodeDeployServiceRole:
     Type: String
     Description: CodeBuild role name
+  AutoScalingGroups:
+    Type: String
+  CodeDeployStage:
+    Type: String
+  CodeDeployAplication:
+    Type: String
 
 Resources:
-  CodeDeploy:
+  CodeDeployDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
     Properties:
-      DeploymentGroupName: Develop
+      DeploymentGroupName: !Ref CodeDeployStage
       ApplicationName: !Ref CodeDeployAplication
       DeploymentConfigName: CodeDeployDefault.OneAtATime
-      Ec2TagFilters:
-        - Type: KEY_AND_VALUE
-          Key: "Name"
-          Value: !Ref CodeDeployInstanceKeyDev
-      ServiceRoleArn: !Ref CodeDeployRoleArn
+      AutoScalingGroups: !Ref AutoScalingGroups
+      ServiceRoleArn: !Ref CodeDeployServiceRole
+Outputs:
+  StackCodeDeployDeploymentGroup:
+    Description: The ID of the CodeDeploymentGroup
+    Value: !Ref CodeDeployDeploymentGroup
+    Export:
+      Name: !Sub ${ServiceName}-${Env}-${Type}-${CodeDeployStage}-codeDeploy

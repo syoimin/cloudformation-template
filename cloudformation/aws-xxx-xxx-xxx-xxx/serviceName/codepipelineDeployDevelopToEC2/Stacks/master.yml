@@ -31,16 +31,20 @@ Parameters:
     Type: String
   CodePipelineArtifactStoreBucket:
     Type: String
-  CodePipelinDeployDevBucket:
-    Type: String
-  CodePipelinDeployStgBucket:
-    Type: String
   CodeBuildImage:
     Type: String
     Default: "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
     Description: Image used for CodeBuild project.
+  AutoScalingGroups:
+    Type: String
 
 Resources:
+  # CodeDeployApplication
+  CodeDeployAplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ComputePlatform: Server
+
   # CodeBuildProject
   CodeBuildProject:
     Description: Creating AWS CodeBuild project
@@ -56,23 +60,52 @@ Resources:
         Env: !Ref Env
         CodeBuildServiceRole: !GetAtt CodeBuildServiceRole.Arn
 
-  # CodeDeployApplication
-  CodeDeployAplication:
-    Type: AWS::CodeDeploy::Application
+  # CodeDeployDeploymentGroup
+  CodeDeployDeploymentGroupDev:
+    Description: Creating AWS CodeDeploymentGroup
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - CodeDeployAplication
     Properties:
-      ComputePlatform: Server
+      TemplateURL: ../Templates/codeDeploy.yml
+      Parameters:
+        ServiceName: !Ref ServiceName
+        Type: !Ref Type
+        Env: !Ref Env
+        AutoScalingGroups: !Ref AutoScalingGroups
+        CodeDeployStage: Develop
+        CodeDeployAplication: !Ref CodeDeployAplication
+        CodeDeployServiceRole: !GetAtt CodeDeployServiceRole.Arn
+
+  # CodeDeployDeploymentGroup
+  CodeDeployDeploymentGroupStage:
+    Description: Creating AWS CodeDeploymentGroup
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - CodeDeployAplication
+    Properties:
+      TemplateURL: ../Templates/codeDeploy.yml
+      Parameters:
+        ServiceName: !Ref ServiceName
+        Type: !Ref Type
+        Env: !Ref Env
+        AutoScalingGroups: !Ref AutoScalingGroups
+        CodeDeployStage: Staging
+        CodeDeployAplication: !Ref CodeDeployAplication
+        CodeDeployServiceRole: !GetAtt CodeDeployServiceRole.Arn
 
   # CodePipeLineProject
   CodePipelineProject:
     Description: Creating AWS CodePipeLine project
     Type: AWS::CloudFormation::Stack
-    DependsOn: CodeBuildProject
+    DependsOn:
+      - CodeBuildProject
+      - CodeDeployDeploymentGroupDev
+      - CodeDeployDeploymentGroupStage
     Properties:
       TemplateURL: ../Templates/codePipeline.yml
       Parameters:
         CodePipelineArtifactStoreBucket: !Ref CodePipelineArtifactStoreBucket
-        CodePipelinDeployDevBucket: !Ref CodePipelinDeployDevBucket
-        CodePipelinDeployStgBucket: !Ref CodePipelinDeployStgBucket
         ServiceName: !Ref ServiceName
         GitHubToken: !Ref GitHubToken
         GitHubOwner: !Ref GitHubOwner
@@ -80,6 +113,7 @@ Resources:
         Branch: !Ref Branch
         Type: !Ref Type
         Env: !Ref Env
+        AutoScalingGroups: !Ref AutoScalingGroups
         CodePipelineServiceRole: !GetAtt CodePipelineServiceRole.Arn
 
   # CodePipelineに適用するIAMRole
@@ -173,3 +207,30 @@ Resources:
                   - s3:GetObjectVersion
                   - s3:GetBucketAcl
                   - s3:GetBucketLocation
+
+  # CodeDeployに適用するIAMRole
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ServiceName}-${Env}-${Type}-codeDeploy-role
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codedeploy.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
+      Policies:
+        - PolicyName: SampleCodeDeployAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Resource: "*"
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents

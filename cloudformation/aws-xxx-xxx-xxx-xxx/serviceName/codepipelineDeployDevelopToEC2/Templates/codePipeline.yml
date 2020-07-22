@@ -6,10 +6,6 @@ Description: CodePipeline For building
 Parameters:
   CodePipelineArtifactStoreBucket:
     Type: String
-  CodePipelinDeployDevBucket:
-    Type: String
-  CodePipelinDeployStgBucket:
-    Type: String
   GitHubToken:
     Type: String
   GitHubOwner:
@@ -38,6 +34,8 @@ Parameters:
     Description: Image used for CodeBuild project.
   CodePipelineServiceRole:
     Type: String
+  CodeDeployAplication:
+    Type: CodeDeployAplication
 
 Resources:
   # CodePipeline
@@ -90,10 +88,11 @@ Resources:
                 Category: Deploy
                 Owner: AWS
                 Version: 1
-                Provider: S3
+                Provider: CodeDeploy
               Configuration:
-                BucketName: !Ref CodePipelinDeployDevBucket
-                Extract: true
+                ApplicationName: !Ref CodeDeployAplication
+                DeploymentGroupName:
+                  Fn::ImportValue: !Sub ${ServiceName}-${Env}-${Type}-Develop-codeDeploy
               RunOrder: 1
               InputArtifacts:
                 - Name: CodebuildOutput
@@ -115,10 +114,11 @@ Resources:
                 Category: Deploy
                 Owner: AWS
                 Version: 1
-                Provider: S3
+                Provider: CodeDeploy
               Configuration:
-                BucketName: !Ref CodePipelinDeployStgBucket
-                Extract: true
+                ApplicationName: !Ref CodeDeployAplication
+                DeploymentGroupName:
+                  Fn::ImportValue: !Sub ${ServiceName}-${Env}-${Type}-Staging-codeDeploy
               RunOrder: 2
               InputArtifacts:
                 - Name: CodebuildOutput

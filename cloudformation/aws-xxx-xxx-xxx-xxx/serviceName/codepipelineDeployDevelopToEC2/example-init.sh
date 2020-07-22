@@ -24,6 +24,7 @@ Env=${env} \
 CodePipelinDeployDevBucket=<コードパイプライン開発用デプロイ先バケット名> \
 CodePipelinDeployStgBucket=<コードパイプライン開発用デプロイ先バケット名> \
 CodePipelineArtifactStoreBucket=<コードパイプラインアーティファクトバケット名> \
+AutoSaclingGroup＝<オートスケーリング”グループ名> \
 --region <リージョン> \
 --profile <プロファイル> \
 --no-execute-changeset

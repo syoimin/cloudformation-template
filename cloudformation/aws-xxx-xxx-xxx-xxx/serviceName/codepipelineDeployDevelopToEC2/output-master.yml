@@ -27,15 +27,17 @@ Parameters:
     Type: String
   CodePipelineArtifactStoreBucket:
     Type: String
-  CodePipelinDeployDevBucket:
-    Type: String
-  CodePipelinDeployStgBucket:
-    Type: String
   CodeBuildImage:
     Type: String
     Default: aws/codebuild/amazonlinux2-x86_64-standard:3.0
     Description: Image used for CodeBuild project.
+  AutoScalingGroups:
+    Type: String
 Resources:
+  CodeDeployAplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ComputePlatform: Server
   CodeBuildProject:
     Description: Creating AWS CodeBuild project
     Type: AWS::CloudFormation::Stack
@@ -58,23 +60,64 @@ Resources:
           Fn::GetAtt:
           - CodeBuildServiceRole
           - Arn
-  CodeDeployAplication:
-    Type: AWS::CodeDeploy::Application
+  CodeDeployDeploymentGroupDev:
+    Description: Creating AWS CodeDeploymentGroup
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+    - CodeDeployAplication
     Properties:
-      ComputePlatform: Server
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/uig-dev-cicd-template/9ff01afd20dcfc2888f13400489ac0fb.template
+      Parameters:
+        ServiceName:
+          Ref: ServiceName
+        Type:
+          Ref: Type
+        Env:
+          Ref: Env
+        AutoScalingGroups:
+          Ref: AutoScalingGroups
+        CodeDeployStage: Develop
+        CodeDeployAplication:
+          Ref: CodeDeployAplication
+        CodeDeployServiceRole:
+          Fn::GetAtt:
+          - CodeDeployServiceRole
+          - Arn
+  CodeDeployDeploymentGroupStage:
+    Description: Creating AWS CodeDeploymentGroup
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+    - CodeDeployAplication
+    Properties:
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/uig-dev-cicd-template/9ff01afd20dcfc2888f13400489ac0fb.template
+      Parameters:
+        ServiceName:
+          Ref: ServiceName
+        Type:
+          Ref: Type
+        Env:
+          Ref: Env
+        AutoScalingGroups:
+          Ref: AutoScalingGroups
+        CodeDeployStage: Staging
+        CodeDeployAplication:
+          Ref: CodeDeployAplication
+        CodeDeployServiceRole:
+          Fn::GetAtt:
+          - CodeDeployServiceRole
+          - Arn
   CodePipelineProject:
     Description: Creating AWS CodePipeLine project
     Type: AWS::CloudFormation::Stack
-    DependsOn: CodeBuildProject
+    DependsOn:
+    - CodeBuildProject
+    - CodeDeployDeploymentGroupDev
+    - CodeDeployDeploymentGroupStage
     Properties:
-      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/uig-dev-cicd-template/7c0aa9f6070bbc3931b210824e0cb83d.template
+      TemplateURL: https://s3.ap-northeast-1.amazonaws.com/uig-dev-cicd-template/1b9d8981d9e2e5617f4a94b8abdb55a2.template
       Parameters:
         CodePipelineArtifactStoreBucket:
           Ref: CodePipelineArtifactStoreBucket
-        CodePipelinDeployDevBucket:
-          Ref: CodePipelinDeployDevBucket
-        CodePipelinDeployStgBucket:
-          Ref: CodePipelinDeployStgBucket
         ServiceName:
           Ref: ServiceName
         GitHubToken:
@@ -89,6 +132,8 @@ Resources:
           Ref: Type
         Env:
           Ref: Env
+        AutoScalingGroups:
+          Ref: AutoScalingGroups
         CodePipelineServiceRole:
           Fn::GetAtt:
           - CodePipelineServiceRole
@@ -184,3 +229,29 @@ Resources:
             - s3:GetObjectVersion
             - s3:GetBucketAcl
             - s3:GetBucketLocation
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::Sub: ${ServiceName}-${Env}-${Type}-codeDeploy-role
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: codedeploy.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
+      Policies:
+      - PolicyName: SampleCodeDeployAccess
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Resource: '*'
+            Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
