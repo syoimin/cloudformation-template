@@ -32,7 +32,8 @@ Resources:
       DeploymentGroupName: !Ref CodeDeployStage
       ApplicationName: !Ref CodeDeployAplication
       DeploymentConfigName: CodeDeployDefault.OneAtATime
-      AutoScalingGroups: !Ref AutoScalingGroups
+      AutoScalingGroups:
+        - !Ref AutoScalingGroups
       ServiceRoleArn: !Ref CodeDeployServiceRole
 Outputs:
   StackCodeDeployDeploymentGroup:

@@ -113,7 +113,7 @@ Resources:
         Branch: !Ref Branch
         Type: !Ref Type
         Env: !Ref Env
-        AutoScalingGroups: !Ref AutoScalingGroups
+        CodeDeployAplication: !Ref CodeDeployAplication
         CodePipelineServiceRole: !GetAtt CodePipelineServiceRole.Arn
 
   # CodePipelineに適用するIAMRole
@@ -224,7 +224,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
       Policies:
-        - PolicyName: SampleCodeDeployAccess
+        - PolicyName: CodeDeployAccess
           PolicyDocument:
             Version: 2012-10-17
             Statement:

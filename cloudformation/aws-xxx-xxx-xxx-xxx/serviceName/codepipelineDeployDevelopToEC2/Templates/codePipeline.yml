@@ -35,7 +35,7 @@ Parameters:
   CodePipelineServiceRole:
     Type: String
   CodeDeployAplication:
-    Type: CodeDeployAplication
+    Type: String
 
 Resources:
   # CodePipeline
