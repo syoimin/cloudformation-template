@@ -35,7 +35,9 @@ Parameters:
     Type: String
     Default: "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
     Description: Image used for CodeBuild project.
-  AutoScalingGroups:
+  AutoScalingGroupsDev:
+    Type: String
+  AutoScalingGroupsStg:
     Type: String
 
 Resources:
@@ -72,7 +74,7 @@ Resources:
         ServiceName: !Ref ServiceName
         Type: !Ref Type
         Env: !Ref Env
-        AutoScalingGroups: !Ref AutoScalingGroups
+        AutoScalingGroups: !Ref AutoScalingGroupsDev
         CodeDeployStage: Develop
         CodeDeployAplication: !Ref CodeDeployAplication
         CodeDeployServiceRole: !GetAtt CodeDeployServiceRole.Arn
@@ -89,7 +91,7 @@ Resources:
         ServiceName: !Ref ServiceName
         Type: !Ref Type
         Env: !Ref Env
-        AutoScalingGroups: !Ref AutoScalingGroups
+        AutoScalingGroups: !Ref AutoScalingGroupsStg
         CodeDeployStage: Staging
         CodeDeployAplication: !Ref CodeDeployAplication
         CodeDeployServiceRole: !GetAtt CodeDeployServiceRole.Arn
