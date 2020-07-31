@@ -37,7 +37,7 @@ Resources:
       ServiceRoleArn: !Ref CodeDeployServiceRole
       DeploymentStyle:
         DeploymentType: IN_PLACE
-        DeploymentOption: WITHOUT_TRAFFIC_CONTROL
+        DeploymentOption: WITH_TRAFFIC_CONTROL
 Outputs:
   StackCodeDeployDeploymentGroup:
     Description: The ID of the CodeDeploymentGroup
