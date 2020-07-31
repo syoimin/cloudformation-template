@@ -39,6 +39,14 @@ Parameters:
     Type: String
   AutoScalingGroupsStg:
     Type: String
+  ElbInfoListNameDev:
+    Type: String
+  TargetGroupInfoListNameDev:
+    Type: String
+  ElbInfoListNameStg:
+    Type: String
+  TargetGroupInfoListNameStg:
+    Type: String
 
 Resources:
   # CodeDeployApplication
@@ -78,6 +86,8 @@ Resources:
         CodeDeployStage: Develop
         CodeDeployAplication: !Ref CodeDeployAplication
         CodeDeployServiceRole: !GetAtt CodeDeployServiceRole.Arn
+        ElbInfoListName: !Ref ElbInfoListNameDev
+        TargetGroupInfoListName: !Ref TargetGroupInfoListNameDev
 
   # CodeDeployDeploymentGroup
   CodeDeployDeploymentGroupStage:
@@ -95,6 +105,8 @@ Resources:
         CodeDeployStage: Staging
         CodeDeployAplication: !Ref CodeDeployAplication
         CodeDeployServiceRole: !GetAtt CodeDeployServiceRole.Arn
+        ElbInfoListName: !Ref ElbInfoListNameStg
+        TargetGroupInfoListName: !Ref TargetGroupInfoListNameStg
 
   # CodePipeLineProject
   CodePipelineProject:

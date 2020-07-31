@@ -24,6 +24,10 @@ Parameters:
     Type: String
   CodeDeployAplication:
     Type: String
+  ElbInfoListName:
+    Type: String
+  TargetGroupInfoListName:
+    Type: String
 
 Resources:
   CodeDeployDeploymentGroup:
@@ -35,6 +39,9 @@ Resources:
       AutoScalingGroups:
         - !Ref AutoScalingGroups
       ServiceRoleArn: !Ref CodeDeployServiceRole
+      LoadBalancerInfo:
+        TargetGroupInfoList:
+          - Name: !Ref TargetGroupInfoListName
       DeploymentStyle:
         DeploymentType: IN_PLACE
         DeploymentOption: WITH_TRAFFIC_CONTROL
